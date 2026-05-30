@@ -1,0 +1,56 @@
+monitoring:
+  enabled: true
+
+  tps:
+    enabled: true
+    check-interval-seconds: 60
+    warning-threshold: 17.0
+    critical-threshold: 10.0
+    alert-cooldown-seconds: 300
+
+  memory:
+    enabled: true
+    warning-used-percent: 85
+    critical-used-percent: 95
+
+  stats:
+    include-online: true
+    include-memory: true
+    include-chunks: true
+    include-entities: true
+    include-uptime: true
+
+discord:
+  enabled: true
+  webhook-url: "PASTE_ALERTS_WEBHOOK_HERE"
+  username: "Exillium Monitor"
+  avatar-url: ""
+  use-embeds: true
+
+  ping:
+    enabled: true
+    ping-on-warning: false
+    ping-on-critical: true
+    role-ids:
+      - "123456789012345678"
+    user-ids: []
+
+performance-log:
+  enabled: true
+  folder: "logs"
+  split-by-date: true
+  write-regular-status: true
+  write-interval-minutes: 5
+  keep-days: 30
+
+display:
+  status-command:
+    show-tps: true
+    show-memory: true
+    show-online: true
+    show-chunks: true
+    show-entities: true
+    show-uptime: true
+
+debug:
+  enabled: false

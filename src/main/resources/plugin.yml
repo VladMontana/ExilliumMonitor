@@ -1,0 +1,28 @@
+name: ExilliumMonitor
+version: 1.0.0
+main: me.yourname.exilliummonitor.ExilliumMonitorPlugin
+api-version: '1.21'
+author: YourName
+description: Monitors Minecraft server performance and sends Discord alerts.
+
+commands:
+  exilliummonitor:
+    description: Main ExilliumMonitor command
+    usage: /exilliummonitor <status|reload|test>
+    aliases:
+      - emonitor
+      - emon
+
+permissions:
+  exilliummonitor.admin:
+    description: Allows access to all ExilliumMonitor commands
+    default: op
+  exilliummonitor.status:
+    description: Allows viewing server performance status
+    default: op
+  exilliummonitor.reload:
+    description: Allows reloading ExilliumMonitor config
+    default: op
+  exilliummonitor.test:
+    description: Allows sending test Discord alerts
+    default: op
