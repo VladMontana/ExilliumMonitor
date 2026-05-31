@@ -23,6 +23,8 @@ The plugin can send alerts when:
 - TPS is below the warning or critical threshold.
 - RAM usage is above the warning or critical threshold.
 
+It can also maintain one daily Discord status message. The plugin creates that message once per day and edits the same message during the day with fresh TPS, RAM, online, chunks, entities, and uptime values.
+
 Default alert rules:
 
 ```text
@@ -177,6 +179,11 @@ discord:
     role-ids:
       - "123456789012345678"
     user-ids: []
+
+  daily-status:
+    enabled: true
+    update-interval-minutes: 5
+    title: "ExilliumMonitor Daily Status"
 ```
 
 Settings:
@@ -186,6 +193,8 @@ Settings:
 - `username`: display name used by webhook messages.
 - `avatar-url`: optional image URL for the webhook avatar.
 - `use-embeds`: sends cleaner embed-style alerts when enabled.
+
+The same webhook is used for both alert messages and the daily status message.
 
 ### webhook-url
 
@@ -297,6 +306,33 @@ user-ids: []
 ```
 
 Blank or invalid IDs are ignored.
+
+## Daily Discord Status
+
+```yaml
+daily-status:
+  enabled: true
+  update-interval-minutes: 5
+  title: "ExilliumMonitor Daily Status"
+```
+
+When enabled, ExilliumMonitor creates one Discord status message per server-local day and edits that same message every `update-interval-minutes`. This keeps a live status panel in Discord without sending a new status message every time.
+
+Settings:
+
+- `enabled`: enables the daily editable status message.
+- `update-interval-minutes`: how often the existing status message is edited. The default is `5`.
+- `title`: title shown in the daily status message.
+
+The message ID and date are stored in:
+
+```text
+plugins/ExilliumMonitor/daily-status.yml
+```
+
+If the stored message ID is missing, the date changes, or Discord rejects an edit, the plugin creates a new daily status message. The daily status message never pings roles or users. TPS/RAM problems still create separate alert messages, and those alerts use the normal `discord.ping.*` settings.
+
+The Discord webhook must be able to create and edit its own webhook messages. ExilliumMonitor uses the Discord Webhook API directly and does not use JDA or a Discord bot.
 
 ## Performance Log Configuration
 

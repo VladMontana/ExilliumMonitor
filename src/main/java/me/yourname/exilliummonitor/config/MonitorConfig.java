@@ -107,6 +107,18 @@ public final class MonitorConfig {
         return config.getStringList("discord.ping.user-ids");
     }
 
+    public boolean isDailyStatusEnabled() {
+        return config.getBoolean("discord.daily-status.enabled", true);
+    }
+
+    public int getDailyStatusUpdateIntervalMinutes() {
+        return Math.max(1, config.getInt("discord.daily-status.update-interval-minutes", 5));
+    }
+
+    public String getDailyStatusTitle() {
+        return config.getString("discord.daily-status.title", "ExilliumMonitor Daily Status");
+    }
+
     public boolean isPerformanceLogEnabled() {
         return config.getBoolean("performance-log.enabled", true);
     }

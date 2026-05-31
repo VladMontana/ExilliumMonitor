@@ -21,6 +21,8 @@ ExilliumMonitor собирает такие метрики:
 - TPS упал ниже warning или critical порога.
 - RAM поднялась выше warning или critical порога.
 
+Также плагин может вести одно ежедневное Discord status-сообщение. Он создает такое сообщение один раз в день и в течение дня редактирует это же сообщение, обновляя TPS, RAM, онлайн, чанки, сущности и uptime.
+
 Логика по умолчанию:
 
 ```text
@@ -175,6 +177,11 @@ discord:
     role-ids:
       - "123456789012345678"
     user-ids: []
+
+  daily-status:
+    enabled: true
+    update-interval-minutes: 5
+    title: "ExilliumMonitor Daily Status"
 ```
 
 Параметры:
@@ -184,6 +191,8 @@ discord:
 - `username`: имя webhook-сообщений.
 - `avatar-url`: необязательная ссылка на аватар webhook.
 - `use-embeds`: включает красивые embed-сообщения.
+
+Один и тот же webhook используется и для alert-сообщений, и для ежедневного status-сообщения.
 
 ### webhook-url
 
@@ -295,6 +304,33 @@ user-ids: []
 ```
 
 Пустые или неправильные ID игнорируются.
+
+## Ежедневный Discord status
+
+```yaml
+daily-status:
+  enabled: true
+  update-interval-minutes: 5
+  title: "ExilliumMonitor Daily Status"
+```
+
+Когда включено, ExilliumMonitor создает одно Discord status-сообщение на каждый локальный день сервера и редактирует это же сообщение каждые `update-interval-minutes`. Так в Discord остается живой status-панелью без спама новыми сообщениями.
+
+Параметры:
+
+- `enabled`: включает ежедневное редактируемое status-сообщение.
+- `update-interval-minutes`: как часто редактировать существующее status-сообщение. По умолчанию `5`.
+- `title`: заголовок ежедневного status-сообщения.
+
+ID сообщения и дата сохраняются здесь:
+
+```text
+plugins/ExilliumMonitor/daily-status.yml
+```
+
+Если сохраненный message ID отсутствует, дата сменилась или Discord отклонил редактирование, плагин создаст новое daily status-сообщение. Daily status никогда не пингует роли или пользователей. Проблемы TPS/RAM по-прежнему создают отдельные alert-сообщения, и именно эти alerts используют настройки `discord.ping.*`.
+
+Discord webhook должен иметь возможность создавать и редактировать свои webhook-сообщения. ExilliumMonitor использует Discord Webhook API напрямую и не использует JDA или Discord Bot.
 
 ## Настройка локальных логов
 

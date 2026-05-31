@@ -35,6 +35,11 @@ discord:
       - "123456789012345678"
     user-ids: []
 
+  daily-status:
+    enabled: true
+    update-interval-minutes: 5
+    title: "ExilliumMonitor Daily Status"
+
 performance-log:
   enabled: true
   folder: "logs"

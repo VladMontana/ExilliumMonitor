@@ -3,10 +3,13 @@ package me.yourname.exilliummonitor;
 import me.yourname.exilliummonitor.command.ExilliumMonitorCommand;
 import me.yourname.exilliummonitor.config.MonitorConfig;
 import me.yourname.exilliummonitor.discord.AlertPayloadBuilder;
+import me.yourname.exilliummonitor.discord.DailyStatusPayloadBuilder;
 import me.yourname.exilliummonitor.discord.DiscordWebhookClient;
+import me.yourname.exilliummonitor.monitor.DailyStatusTask;
 import me.yourname.exilliummonitor.monitor.PerformanceAlertService;
 import me.yourname.exilliummonitor.monitor.ServerStatsService;
 import me.yourname.exilliummonitor.monitor.TpsMonitorTask;
+import me.yourname.exilliummonitor.service.DailyStatusService;
 import me.yourname.exilliummonitor.service.PerformanceLogService;
 import me.yourname.exilliummonitor.util.MentionBuilder;
 import org.bukkit.command.PluginCommand;
@@ -20,6 +23,9 @@ public final class ExilliumMonitorPlugin extends JavaPlugin {
     private AlertPayloadBuilder alertPayloadBuilder;
     private PerformanceAlertService performanceAlertService;
     private TpsMonitorTask tpsMonitorTask;
+    private DailyStatusPayloadBuilder dailyStatusPayloadBuilder;
+    private DailyStatusService dailyStatusService;
+    private DailyStatusTask dailyStatusTask;
 
     @Override
     public void onEnable() {
@@ -27,6 +33,7 @@ public final class ExilliumMonitorPlugin extends JavaPlugin {
         initializeServices();
         registerCommand();
         tpsMonitorTask.start();
+        dailyStatusTask.start();
         getLogger().info("Plugin enabled.");
     }
 
@@ -34,6 +41,9 @@ public final class ExilliumMonitorPlugin extends JavaPlugin {
     public void onDisable() {
         if (tpsMonitorTask != null) {
             tpsMonitorTask.stop();
+        }
+        if (dailyStatusTask != null) {
+            dailyStatusTask.stop();
         }
         if (discordWebhookClient != null) {
             discordWebhookClient.shutdown();
@@ -50,8 +60,11 @@ public final class ExilliumMonitorPlugin extends JavaPlugin {
         performanceLogService.updateConfig(monitorConfig);
         discordWebhookClient.updateConfig(monitorConfig);
         alertPayloadBuilder.updateConfig(monitorConfig);
+        dailyStatusPayloadBuilder.updateConfig(monitorConfig);
         performanceAlertService.updateConfig(monitorConfig);
+        dailyStatusService.updateConfig(monitorConfig);
         tpsMonitorTask.updateConfig(monitorConfig);
+        dailyStatusTask.updateConfig(monitorConfig);
     }
 
     public MonitorConfig getMonitorConfig() {
@@ -64,11 +77,18 @@ public final class ExilliumMonitorPlugin extends JavaPlugin {
         performanceLogService = new PerformanceLogService(this, monitorConfig);
         discordWebhookClient = new DiscordWebhookClient(this, monitorConfig);
         alertPayloadBuilder = new AlertPayloadBuilder(monitorConfig, new MentionBuilder());
+        dailyStatusPayloadBuilder = new DailyStatusPayloadBuilder(monitorConfig);
         performanceAlertService = new PerformanceAlertService(
                 monitorConfig,
                 discordWebhookClient,
                 alertPayloadBuilder,
                 performanceLogService
+        );
+        dailyStatusService = new DailyStatusService(
+                this,
+                monitorConfig,
+                discordWebhookClient,
+                dailyStatusPayloadBuilder
         );
         tpsMonitorTask = new TpsMonitorTask(
                 this,
@@ -76,6 +96,12 @@ public final class ExilliumMonitorPlugin extends JavaPlugin {
                 serverStatsService,
                 performanceAlertService,
                 performanceLogService
+        );
+        dailyStatusTask = new DailyStatusTask(
+                this,
+                monitorConfig,
+                serverStatsService,
+                dailyStatusService
         );
     }
 
