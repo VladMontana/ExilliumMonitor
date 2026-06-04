@@ -2,6 +2,8 @@ package me.yourname.exilliummonitor.discord;
 
 import me.yourname.exilliummonitor.config.MonitorConfig;
 import me.yourname.exilliummonitor.model.AlertLevel;
+import me.yourname.exilliummonitor.model.LagChunkDiagnostic;
+import me.yourname.exilliummonitor.model.LagDiagnosticsReport;
 import me.yourname.exilliummonitor.model.PerformanceAlert;
 import me.yourname.exilliummonitor.model.ServerStats;
 import me.yourname.exilliummonitor.util.FormatUtil;
@@ -34,6 +36,10 @@ public final class AlertPayloadBuilder {
 
     private String buildPlainPayload(PerformanceAlert alert) {
         String content = alert.title() + "\n\n" + alert.message() + "\n\n" + formatStats(alert.stats());
+        String diagnostics = formatDiagnostics(alert.diagnosticsReport());
+        if (!diagnostics.isBlank()) {
+            content += "\n\n" + diagnostics;
+        }
         String mentions = mentions(alert);
         if (!mentions.isBlank()) {
             content += "\n\n" + mentions;
@@ -58,7 +64,7 @@ public final class AlertPayloadBuilder {
                 + jsonField("title", alert.title()) + ","
                 + jsonField("description", alert.message()) + ","
                 + "\"color\":" + color + ","
-                + "\"fields\":[" + String.join(",", fields(stats)) + "],"
+                + "\"fields\":[" + String.join(",", fields(stats, alert.diagnosticsReport())) + "],"
                 + "\"timestamp\":\"" + escape(alert.timestamp().toString()) + "\""
                 + "}]"
                 + "}";
@@ -89,7 +95,7 @@ public final class AlertPayloadBuilder {
         return joiner.toString();
     }
 
-    private List<String> fields(ServerStats stats) {
+    private List<String> fields(ServerStats stats, LagDiagnosticsReport diagnosticsReport) {
         List<String> fields = new ArrayList<>();
         fields.add(field("TPS", FormatUtil.decimal(stats.tps1m(), 2) + " / " + FormatUtil.decimal(stats.tps5m(), 2) + " / " + FormatUtil.decimal(stats.tps15m(), 2), true));
         fields.add(field("MSPT", FormatUtil.decimal(stats.mspt(), 1) + " ms", true));
@@ -108,7 +114,51 @@ public final class AlertPayloadBuilder {
         if (config.isIncludeUptime()) {
             fields.add(field("Uptime", TimeUtil.formatDuration(stats.uptimeMillis()), true));
         }
+        String diagnostics = formatDiagnostics(diagnosticsReport);
+        if (!diagnostics.isBlank()) {
+            fields.add(field("Possible lag sources", truncate(diagnostics, 1000), false));
+        }
         return fields;
+    }
+
+    private String formatDiagnostics(LagDiagnosticsReport report) {
+        if (report == null || report.isEmpty()) {
+            return "";
+        }
+
+        StringJoiner joiner = new StringJoiner(System.lineSeparator());
+        joiner.add("Possible lag sources:");
+        joiner.add("Scanned chunks: " + report.scannedChunks()
+                + ", entities: " + report.totalEntities()
+                + ", block entities: " + report.totalBlockEntities());
+        for (LagChunkDiagnostic chunk : report.topChunks()) {
+            joiner.add(formatChunkDiagnostic(chunk));
+        }
+        return joiner.toString();
+    }
+
+    private String formatChunkDiagnostic(LagChunkDiagnostic chunk) {
+        String nearbyPlayers = chunk.nearbyPlayers().isEmpty() ? "none" : String.join(", ", chunk.nearbyPlayers());
+        String topTypes = chunk.typeCounts().isEmpty() ? "none" : formatTypeCounts(chunk);
+        return chunk.worldName()
+                + " chunk " + chunk.chunkX() + "," + chunk.chunkZ()
+                + " center " + chunk.centerBlockX() + "," + chunk.centerBlockZ()
+                + " score " + chunk.score()
+                + " nearby: " + nearbyPlayers
+                + " top: " + topTypes;
+    }
+
+    private String formatTypeCounts(LagChunkDiagnostic chunk) {
+        StringJoiner joiner = new StringJoiner(", ");
+        chunk.typeCounts().forEach((type, count) -> joiner.add(type + "=" + count));
+        return joiner.toString();
+    }
+
+    private String truncate(String value, int maxLength) {
+        if (value.length() <= maxLength) {
+            return value;
+        }
+        return value.substring(0, Math.max(0, maxLength - 3)) + "...";
     }
 
     private String mentions(PerformanceAlert alert) {

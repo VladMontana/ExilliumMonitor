@@ -1,6 +1,8 @@
 package me.yourname.exilliummonitor.service;
 
 import me.yourname.exilliummonitor.config.MonitorConfig;
+import me.yourname.exilliummonitor.model.LagChunkDiagnostic;
+import me.yourname.exilliummonitor.model.LagDiagnosticsReport;
 import me.yourname.exilliummonitor.model.PerformanceAlert;
 import me.yourname.exilliummonitor.model.ServerStats;
 import me.yourname.exilliummonitor.util.FormatUtil;
@@ -96,6 +98,7 @@ public final class PerformanceLogService {
             line.add("Uptime=" + FormatUtil.decimal(Duration.ofMillis(stats.uptimeMillis()).toMinutes(), 0) + "m");
         }
         appendLine(alertsLogPath(), line.toString());
+        appendDiagnostics(alert.diagnosticsReport());
     }
 
     public void close() {
@@ -135,6 +138,35 @@ public final class PerformanceLogService {
 
     private void appendLine(Path path, String line) {
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> appendLineNow(path, line));
+    }
+
+    private void appendDiagnostics(LagDiagnosticsReport report) {
+        if (report == null || report.isEmpty()) {
+            return;
+        }
+
+        StringJoiner line = new StringJoiner(" ");
+        line.add("[" + LocalTime.now().format(TIME_FORMAT) + "]");
+        line.add("DIAGNOSTICS");
+        line.add("ScannedChunks=" + report.scannedChunks());
+        line.add("Entities=" + report.totalEntities());
+        line.add("BlockEntities=" + report.totalBlockEntities());
+        for (LagChunkDiagnostic chunk : report.topChunks()) {
+            line.add("Chunk=" + chunk.worldName() + ":" + chunk.chunkX() + "," + chunk.chunkZ()
+                    + " Score=" + chunk.score()
+                    + " Nearby=" + (chunk.nearbyPlayers().isEmpty() ? "none" : String.join(",", chunk.nearbyPlayers()))
+                    + " Top=" + formatTypeCounts(chunk));
+        }
+        appendLine(alertsLogPath(), line.toString());
+    }
+
+    private String formatTypeCounts(LagChunkDiagnostic chunk) {
+        if (chunk.typeCounts().isEmpty()) {
+            return "none";
+        }
+        StringJoiner joiner = new StringJoiner(",");
+        chunk.typeCounts().forEach((type, count) -> joiner.add(type + "=" + count));
+        return joiner.toString();
     }
 
     private void appendLineNow(Path path, String line) {

@@ -4,8 +4,10 @@ import me.yourname.exilliummonitor.config.MonitorConfig;
 import me.yourname.exilliummonitor.discord.AlertPayloadBuilder;
 import me.yourname.exilliummonitor.discord.DiscordWebhookClient;
 import me.yourname.exilliummonitor.model.AlertLevel;
+import me.yourname.exilliummonitor.model.LagDiagnosticsReport;
 import me.yourname.exilliummonitor.model.PerformanceAlert;
 import me.yourname.exilliummonitor.model.ServerStats;
+import me.yourname.exilliummonitor.service.LagDiagnosticsService;
 import me.yourname.exilliummonitor.service.PerformanceLogService;
 import me.yourname.exilliummonitor.util.FormatUtil;
 
@@ -17,6 +19,7 @@ public final class PerformanceAlertService {
     private final DiscordWebhookClient discordWebhookClient;
     private final AlertPayloadBuilder payloadBuilder;
     private final PerformanceLogService performanceLogService;
+    private final LagDiagnosticsService lagDiagnosticsService;
     private long lastWarningAlertMillis;
     private long lastCriticalAlertMillis;
 
@@ -24,16 +27,19 @@ public final class PerformanceAlertService {
             MonitorConfig config,
             DiscordWebhookClient discordWebhookClient,
             AlertPayloadBuilder payloadBuilder,
-            PerformanceLogService performanceLogService
+            PerformanceLogService performanceLogService,
+            LagDiagnosticsService lagDiagnosticsService
     ) {
         this.config = config;
         this.discordWebhookClient = discordWebhookClient;
         this.payloadBuilder = payloadBuilder;
         this.performanceLogService = performanceLogService;
+        this.lagDiagnosticsService = lagDiagnosticsService;
     }
 
     public void updateConfig(MonitorConfig config) {
         this.config = config;
+        this.lagDiagnosticsService.updateConfig(config);
     }
 
     public Optional<PerformanceAlert> evaluate(ServerStats stats) {
@@ -67,7 +73,8 @@ public final class PerformanceAlertService {
                 "This is a test alert from ExilliumMonitor.",
                 stats,
                 Instant.now(),
-                includeMentions && config.isPingEnabled()
+                includeMentions && config.isPingEnabled(),
+                null
         );
         sendAndLog(alert);
     }
@@ -127,7 +134,13 @@ public final class PerformanceAlertService {
     }
 
     private PerformanceAlert alert(AlertLevel level, String title, String message, ServerStats stats) {
-        return new PerformanceAlert(level, title, message, stats, Instant.now(), shouldPing(level));
+        LagDiagnosticsReport diagnosticsReport = null;
+        try {
+            diagnosticsReport = lagDiagnosticsService.diagnose(level);
+        } catch (RuntimeException exception) {
+            diagnosticsReport = null;
+        }
+        return new PerformanceAlert(level, title, message, stats, Instant.now(), shouldPing(level), diagnosticsReport);
     }
 
     private boolean shouldPing(AlertLevel level) {

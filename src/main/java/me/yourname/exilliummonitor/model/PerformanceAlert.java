@@ -8,6 +8,7 @@ public record PerformanceAlert(
         String message,
         ServerStats stats,
         Instant timestamp,
-        boolean shouldPing
+        boolean shouldPing,
+        LagDiagnosticsReport diagnosticsReport
 ) {
 }

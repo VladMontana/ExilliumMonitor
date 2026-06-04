@@ -10,6 +10,7 @@ import me.yourname.exilliummonitor.monitor.PerformanceAlertService;
 import me.yourname.exilliummonitor.monitor.ServerStatsService;
 import me.yourname.exilliummonitor.monitor.TpsMonitorTask;
 import me.yourname.exilliummonitor.service.DailyStatusService;
+import me.yourname.exilliummonitor.service.LagDiagnosticsService;
 import me.yourname.exilliummonitor.service.PerformanceLogService;
 import me.yourname.exilliummonitor.util.MentionBuilder;
 import org.bukkit.command.PluginCommand;
@@ -22,6 +23,7 @@ public final class ExilliumMonitorPlugin extends JavaPlugin {
     private DiscordWebhookClient discordWebhookClient;
     private AlertPayloadBuilder alertPayloadBuilder;
     private PerformanceAlertService performanceAlertService;
+    private LagDiagnosticsService lagDiagnosticsService;
     private TpsMonitorTask tpsMonitorTask;
     private DailyStatusPayloadBuilder dailyStatusPayloadBuilder;
     private DailyStatusService dailyStatusService;
@@ -61,6 +63,7 @@ public final class ExilliumMonitorPlugin extends JavaPlugin {
         discordWebhookClient.updateConfig(monitorConfig);
         alertPayloadBuilder.updateConfig(monitorConfig);
         dailyStatusPayloadBuilder.updateConfig(monitorConfig);
+        lagDiagnosticsService.updateConfig(monitorConfig);
         performanceAlertService.updateConfig(monitorConfig);
         dailyStatusService.updateConfig(monitorConfig);
         tpsMonitorTask.updateConfig(monitorConfig);
@@ -78,11 +81,13 @@ public final class ExilliumMonitorPlugin extends JavaPlugin {
         discordWebhookClient = new DiscordWebhookClient(this, monitorConfig);
         alertPayloadBuilder = new AlertPayloadBuilder(monitorConfig, new MentionBuilder());
         dailyStatusPayloadBuilder = new DailyStatusPayloadBuilder(monitorConfig);
+        lagDiagnosticsService = new LagDiagnosticsService(monitorConfig);
         performanceAlertService = new PerformanceAlertService(
                 monitorConfig,
                 discordWebhookClient,
                 alertPayloadBuilder,
-                performanceLogService
+                performanceLogService,
+                lagDiagnosticsService
         );
         dailyStatusService = new DailyStatusService(
                 this,
