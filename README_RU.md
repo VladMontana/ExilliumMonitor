@@ -49,7 +49,7 @@ mvn clean package
 Готовый jar появится здесь:
 
 ```text
-target/ExilliumMonitor-1.0.0.jar
+target/ExilliumMonitor-1.0.1.jar
 ```
 
 Скопируй jar в папку `plugins/` Paper-сервера и перезапусти сервер.
@@ -159,6 +159,33 @@ alert-cooldown-seconds: 300
 warning-used-percent: 85
 critical-used-percent: 95
 ```
+
+## Lag Diagnostics Configuration
+
+```yaml
+diagnostics:
+  enabled: true
+  run-on-warning: true
+  run-on-critical: true
+  top-chunks: 5
+  max-scanned-chunks: 300
+  nearby-player-radius-blocks: 128
+  include-block-entities: true
+  include-entity-breakdown: true
+```
+
+When enabled, WARNING and CRITICAL alerts include a `Possible lag sources` section. This is a safe heuristic report, not an exact CPU profiler: ExilliumMonitor scans loaded chunks, scores entity and block-entity counts, and shows nearby players for the most suspicious chunks.
+
+Settings:
+
+- `enabled`: enables lag diagnostics for alerts.
+- `run-on-warning`: includes diagnostics in WARNING alerts.
+- `run-on-critical`: includes diagnostics in CRITICAL alerts.
+- `top-chunks`: maximum suspicious chunks shown in Discord and alert logs.
+- `max-scanned-chunks`: maximum loaded chunks scanned per alert to avoid heavy work.
+- `nearby-player-radius-blocks`: radius used to list nearby players. Nearby players are an attribution hint, not proof of ownership.
+- `include-block-entities`: counts block entities such as hoppers, spawners, containers, furnaces, droppers, dispensers, and crafters.
+- `include-entity-breakdown`: includes top entity types such as minecarts, dropped items, villagers, mobs, and animals.
 
 ## Настройка Discord
 

@@ -20,6 +20,16 @@ monitoring:
     include-entities: true
     include-uptime: true
 
+diagnostics:
+  enabled: true
+  run-on-warning: true
+  run-on-critical: true
+  top-chunks: 5
+  max-scanned-chunks: 300
+  nearby-player-radius-blocks: 128
+  include-block-entities: true
+  include-entity-breakdown: true
+
 discord:
   enabled: true
   webhook-url: "PASTE_ALERTS_WEBHOOK_HERE"

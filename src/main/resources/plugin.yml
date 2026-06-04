@@ -1,5 +1,5 @@
 name: ExilliumMonitor
-version: 1.0.0
+version: 1.0.1
 main: me.yourname.exilliummonitor.ExilliumMonitorPlugin
 api-version: '1.21'
 author: YourName

@@ -67,6 +67,38 @@ public final class MonitorConfig {
         return config.getBoolean("monitoring.stats.include-uptime", true);
     }
 
+    public boolean isDiagnosticsEnabled() {
+        return config.getBoolean("diagnostics.enabled", true);
+    }
+
+    public boolean isDiagnosticsRunOnWarning() {
+        return config.getBoolean("diagnostics.run-on-warning", true);
+    }
+
+    public boolean isDiagnosticsRunOnCritical() {
+        return config.getBoolean("diagnostics.run-on-critical", true);
+    }
+
+    public int getDiagnosticsTopChunks() {
+        return Math.max(1, config.getInt("diagnostics.top-chunks", 5));
+    }
+
+    public int getDiagnosticsMaxScannedChunks() {
+        return Math.max(1, config.getInt("diagnostics.max-scanned-chunks", 300));
+    }
+
+    public int getDiagnosticsNearbyPlayerRadiusBlocks() {
+        return Math.max(0, config.getInt("diagnostics.nearby-player-radius-blocks", 128));
+    }
+
+    public boolean isDiagnosticsIncludeBlockEntities() {
+        return config.getBoolean("diagnostics.include-block-entities", true);
+    }
+
+    public boolean isDiagnosticsIncludeEntityBreakdown() {
+        return config.getBoolean("diagnostics.include-entity-breakdown", true);
+    }
+
     public boolean isDiscordEnabled() {
         return config.getBoolean("discord.enabled", true);
     }
